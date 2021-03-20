@@ -1,5 +1,7 @@
 package com.grupo03.view;
 
+
+import com.grupo03.controller.CoffeeRoomController;
 import com.grupo03.controller.EventRoomController;
 import com.grupo03.model.CoffeeRoom;
 import com.grupo03.model.EventRoom;
@@ -44,7 +46,6 @@ public class ApplicationGUI {
      * Imprime o menu e obtém as informações necessárias para cadastrar um espaço de evento.
      */
     private static void createEventRoom(){
-
         // Instancia o controller:
         var eventRoomControler = new EventRoomController();
 
@@ -70,8 +71,7 @@ public class ApplicationGUI {
                 if (input.isEmpty()) {
                     cancelar = true;
                     break;
-                } else if (input.length() < 3)   // Valor inserido muito pequeno:
-                {
+                } else if (input.length() < 3) {    // Valor inserido muito pequeno:
                     System.out.println("\nErro: Insira um nome válido!");
                 }
 
@@ -80,7 +80,7 @@ public class ApplicationGUI {
 
             // Testa se o usuário quer cancelar o cadastro:
             if (cancelar) {
-                System.out.println("Operação cancelada!");
+                System.out.println("Operação cancelada!\n");
                 break;
             }
 
@@ -100,14 +100,13 @@ public class ApplicationGUI {
                     // Tenta converter para int:
                     capacity = Integer.parseInt(input);
 
-                    if (capacity <= 1)  // Valor inserido menor que 2:
+                    if (capacity <= 1) {    // Valor inserido menor que 2:
                         System.out.println("\nErro: Insira um número maior que 1!");
-
+                    }
                 } catch (NumberFormatException nfe) {
                     System.out.println("Erro: Insira apenas números inteiros! Ex.: 5");
                     capacity = 0;
                 }
-
             } while (capacity <= 1);
 
             // Testa se o usuário quer cancelar o cadastro:
@@ -120,41 +119,69 @@ public class ApplicationGUI {
             boolean eventRoomCadastrada =
                     eventRoomControler.create(name, capacity);
 
-            if (eventRoomCadastrada)
+            if (eventRoomCadastrada) {
                 System.out.println("Espaço de evento cadastrado!\n");
+            }
 
-            System.out.print("Deseja cadastrar outra sala? (S ou N): ");
+            System.out.print("Deseja cadastrar outra espaço? (S ou N): ");
             opcaoMenu = ler.next();
             ler.nextLine();
         }while(opcaoMenu.equalsIgnoreCase("S"));
-
     }
 
     /**
-     * Método que cria as salas de café e salva no banco
+     * Imprime o menu e obtém as informações necessárias para cadastrar um espaço de café.
      */
-    public static void createCoffeeRoom(){
-        Scanner teclado = new Scanner(System.in);
-        CoffeeRoomDao coffeeController = new CoffeeRoomDao();
-        CoffeeRoom coffeeRoom;
-        String name,opcao;
+    private static void createCoffeeRoom() {
 
+        var coffeeRoomControler = new CoffeeRoomController();
 
+        // Armazenam os dados que o usuaŕio digitar:
+        var input = "";
+
+        var name = "";
+
+        var opcaoMenu = "";     // Armazena a opção que o usuário digitar.
+        var cancelar = false;   // falso se o usuário quiser cancelar.
+
+        System.out.println("\n==== CADASTRO DE ESPAÇO DE CAFÉ ====");
         do {
-            System.out.println("Insira o nome da sala do Café");
-            name = teclado.nextLine();
+            System.out.println("Aperte ENTER para cancelar.");
 
-            System.out.println("Nome: " + name );
+            // Pede ao usuário para inserir o nome do espaço:
+            do {
+                System.out.print("Nome: ");
+                input = ler.nextLine();
 
-            coffeeRoom = new CoffeeRoom(name);
-            coffeeController.save(coffeeRoom);
-            System.out.println("Deseja inserir outra sala do Café? S ou N");
-            opcao = teclado.next();
-            teclado.nextLine();
-            limpar();
-        } while(opcao.equalsIgnoreCase("S"));
+                // Verifica se o valor digitado está vazio para cancelar:
+                if (input.isEmpty()) {
+                    cancelar = true;
+                    break;
+                } else if (input.length() < 3) {
+                    System.out.println("\nErro: Insira um nome válido!");
+                }
 
+                name = input;
+            } while (name.length() < 3);
 
+            // Verifica se o usuário quer cancelar o cadastro:
+            if (cancelar) {
+                System.out.println("Operação cancelada!\n");
+                break;
+            }
+
+            // Faz o cadastro no sistema:
+            boolean coffeeRoomCadastrada =
+                    coffeeRoomControler.create(name);
+
+            if (coffeeRoomCadastrada) {
+                System.out.println("Espaço de evento cadastrado!\n");
+            }
+
+            System.out.print("Deseja cadastrar outro expaço? (S ou N): ");
+            opcaoMenu = ler.next();
+            ler.nextLine();
+        }while(opcaoMenu.equalsIgnoreCase("S"));
     }
 
     /**
@@ -485,24 +512,40 @@ public class ApplicationGUI {
                     "Digite: ");
             op = teclado.nextLine();
 
-            switch (op){
-                case "1": createEventRoom();
+            switch(op) {
+                case "1":
+                        createEventRoom();
                         break;
-                case "2": createCoffeeRoom();
+
+                case "2":
+                        createCoffeeRoom();
                         break;
-                case "3": createPerson();
+
+                case "3":
+                        createPerson();
                         break;
-                case "4": getPersonList();
+
+                case "4":
+                        getPersonList();
                         break;
-                case "5": getEventRoomList();
+
+                case "5":
+                        getEventRoomList();
                         break;
-                case "6": getCoffeeRoomList();
+
+                case "6":
+                        getCoffeeRoomList();
                         break;
-                case "7": setPersonRoom();
+
+                case "7":
+                        setPersonRoom();
                         break;
-                case "0": break;
+
+                case "0":
+                        break;
                 default:
-                    System.out.println("Digite uma opção válida!\n");
+                        System.out.println("Digite uma opção válida!\n");
+                        break;
            }
         } while(!op.equals("0"));
         System.out.println("Obrigado por usar o sistema!");
