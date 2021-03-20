@@ -3,6 +3,7 @@ package com.grupo03.controller;
 import com.grupo03.model.EventRoom;
 import com.grupo03.model.dao.EventRoomDao;
 
+
 /**
  * Realiza as operações da entidade EventRoom aplicando as regras de negócio.
  * @see com.grupo03.model.dao.EventRoomDao
@@ -27,7 +28,7 @@ public class EventRoomController {
     }
 
     /**
-     * Cadastra um novo espaço de evendo no banco de dados.
+     * Cadastra um novo espaço de evento no banco de dados.
      *
      * @param name      o nome do espaço de evento.
      * @param capacity  a capacidade máxima do espaço.
@@ -39,13 +40,15 @@ public class EventRoomController {
 
         /* Verifica se o nome tem pelo menos 3 caracteres ou se não passa de 255
          * que é o limite do banco: */
-        if (name.length() < 3 || name.length() > 255)
+        if (name.length() < 3 || name.length() > 255) {
             result = false;
+        }
 
         /* Verifica se a capacidade do espaço de pelo menos 2 lugares:
          * 1 aluno + 1 professor por exemplo.*/
-        if (capacity < 2)
+        if (capacity < 2) {
             result = false;
+        }
 
         // Verifica se nenhum erro foi encontrado:
         if (result) {
@@ -55,5 +58,4 @@ public class EventRoomController {
 
         return result;
     }
-
 }
