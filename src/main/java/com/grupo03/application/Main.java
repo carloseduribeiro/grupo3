@@ -9,8 +9,6 @@ public class Main {
 
     public static void main(String[] args) {
 
-        var em = EntityManagerProvider.getEntityManager();
-
         ApplicationGUI.start();
 
     }
