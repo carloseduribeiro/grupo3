@@ -1,36 +1,25 @@
 package com.grupo03.view;
 
-import com.grupo03.dao.AllocationDao;
-import com.grupo03.dao.CoffeeRoomDao;
-import com.grupo03.dao.EventRoomDao;
+import com.grupo03.controller.EventRoomController;
 import com.grupo03.model.CoffeeRoom;
 import com.grupo03.model.EventRoom;
 import com.grupo03.model.Person;
-import com.grupo03.dao.PersonDao;
+import com.grupo03.model.dao.AllocationDao;
+import com.grupo03.model.dao.CoffeeRoomDao;
+import com.grupo03.model.dao.EventRoomDao;
+import com.grupo03.model.dao.PersonDao;
 import com.grupo03.persistence.EntityManagerProvider;
 
-
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.Scanner;
 import java.util.*;
 
 
 /**
- * Classe que contém os métodos que são chamados para executar cada funcionalidade do sistema.
- * Interface com o usuário.
- * @see com.grupo03.dao.CoffeeRoomDao
- * @see com.grupo03.dao.EventRoomDao
- * @see com.grupo03.model.CoffeeRoom
- * @see com.grupo03.model.EventRoom
- * @see com.grupo03.model.Person
- * @see com.grupo03.dao.PersonDao
- * @see com.grupo03.persistence.EntityManagerProvider
+ * Contém os métodos da interfáce do usuário.
+ * @see com.grupo03.controller.EventRoomController
  *
  * {@link #start()} Método que exibe o menu de funcionalidades do sistema.
  * {@link #createPerson()} Cria uma nova pessoa e a cadastra no banco de dados.
- * {@link #createEventRooom()} Cria uma nova sala de evento e salva no banco de dados.
+ * {@link #createEventRoom()} Imprime o menu e obtém as informações necessárias para cadastrar um espaço de evento.
  * {@link #createCoffeeRoom()} Cria uma nova sala de café e salva no banco de dados.
  * {@link #getPersonList()} Exibe as salas de evento e café em que a pessoa selecionada foi cadastrada.
  * {@link #getEventRoomList()} Exibe todas as pessoas que estão cadastradas na sala de evento selecionada,
@@ -48,34 +37,96 @@ import java.util.*;
  */
 public class ApplicationGUI {
 
+    // Instancia um objeto da classe Scanner para entrada de dados:
+    private static final Scanner ler = new Scanner(System.in);
+
     /**
-     * Método que cria as salas de eventos e cadastra no banco
+     * Imprime o menu e obtém as informações necessárias para cadastrar um espaço de evento.
      */
-    public static void createEventRooom(){
-        Scanner teclado = new Scanner(System.in);
-        EventRoomDao eventController = new EventRoomDao();
-        EventRoom   eventRoom;
-        int capacity;
-        String name,opcao;
+    private static void createEventRoom(){
 
+        // Instancia o controller:
+        var eventRoomControler = new EventRoomController();
 
+        // Armazenam os dados que o usuaŕio digitar:
+        var input = "";
+
+        var name = "";
+        var capacity = 0;
+
+        var opcaoMenu = "";     // Armazena a opção que o usuário digitar.
+        var cancelar = false;   // falso se o usuário quiser cancelar.
+
+        System.out.println("\n=== CADASTRO DE ESPAÇO DE EVENTO ===");
         do {
-            System.out.println("Insira o nome da sala");
-            name = teclado.nextLine();
+            System.out.println("Aperte ENTER para cancelar.");
 
-            System.out.println("Insira a capacidade máxima da sala");
-            capacity = teclado.nextInt();
+            // Pede ao usuário para inserir o nome do espaço:
+            do {
+                System.out.print("Nome: ");
+                input = ler.nextLine();
 
-            System.out.println("Nome: " + name + "capacidade máxima:" + capacity);
-            eventRoom = new EventRoom(name,capacity);
-            eventController.save(eventRoom);
+                // Verifica se o valor digitado está vazio para cancelar:
+                if (input.isEmpty()) {
+                    cancelar = true;
+                    break;
+                } else if (input.length() < 3)   // Valor inserido muito pequeno:
+                {
+                    System.out.println("\nErro: Insira um nome válido!");
+                }
 
-            System.out.println("Deseja inserir outra sala? S ou N");
-            opcao = teclado.next();
-            teclado.nextLine();
-            limpar();
-        }while(opcao.equalsIgnoreCase("S"));
+                name = input;
+            } while (name.length() < 3);
 
+            // Testa se o usuário quer cancelar o cadastro:
+            if (cancelar) {
+                System.out.println("Operação cancelada!");
+                break;
+            }
+
+            // Pede ao usuário para inserir a capacidade máxima do espaço:
+            do {
+                System.out.print("Capacidade máxima: ");
+                input = ler.nextLine();
+
+                // Verifica se o valor digitado está vazio para cancelar:
+                if (input.isEmpty()) {
+                    cancelar = true;
+                    break;
+                }
+
+                // Verifica se o valor inserido é válido:
+                try {
+                    // Tenta converter para int:
+                    capacity = Integer.parseInt(input);
+
+                    if (capacity <= 1)  // Valor inserido menor que 2:
+                        System.out.println("\nErro: Insira um número maior que 1!");
+
+                } catch (NumberFormatException nfe) {
+                    System.out.println("Erro: Insira apenas números inteiros! Ex.: 5");
+                    capacity = 0;
+                }
+
+            } while (capacity <= 1);
+
+            // Testa se o usuário quer cancelar o cadastro:
+            if (cancelar) {
+                System.out.println("Operação cancelada!");
+                break;
+            }
+
+            // Faz o cadastro no sistema:
+            boolean eventRoomCadastrada =
+                    eventRoomControler.create(name, capacity);
+
+            if (eventRoomCadastrada)
+                System.out.println("Espaço de evento cadastrado!\n");
+
+            System.out.print("Deseja cadastrar outra sala? (S ou N): ");
+            opcaoMenu = ler.next();
+            ler.nextLine();
+        }while(opcaoMenu.equalsIgnoreCase("S"));
 
     }
 
@@ -420,9 +471,8 @@ public class ApplicationGUI {
         String op;
         Scanner teclado = new Scanner(System.in);
         System.out.println("Seja Bem vindo!");
-        System.out.println("Lembre-se deve ser cadastrado as salas antes das pessoas");
         do {
-            System.out.println("Selecione uma das opções abaixo: ");
+            System.out.println("Escolha uma opção: ");
             System.out.print("" +
                     "\t1)Cadastrar Salas\n" +
                     "\t2)Cadastrar Salas de Café\n" +
@@ -436,7 +486,7 @@ public class ApplicationGUI {
             op = teclado.nextLine();
 
             switch (op){
-                case "1": createEventRooom();
+                case "1": createEventRoom();
                         break;
                 case "2": createCoffeeRoom();
                         break;
@@ -452,10 +502,9 @@ public class ApplicationGUI {
                         break;
                 case "0": break;
                 default:
-                    System.out.println("Opção Invalida");
+                    System.out.println("Digite uma opção válida!\n");
            }
-            limpar();
-        }while(!op.equals("0"));
+        } while(!op.equals("0"));
         System.out.println("Obrigado por usar o sistema!");
     }
 
