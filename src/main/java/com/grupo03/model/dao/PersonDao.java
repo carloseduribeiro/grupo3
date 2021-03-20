@@ -1,4 +1,4 @@
-package com.grupo03.dao;
+package com.grupo03.model.dao;
 
 import com.grupo03.model.Person;
 import com.grupo03.persistence.EntityManagerProvider;

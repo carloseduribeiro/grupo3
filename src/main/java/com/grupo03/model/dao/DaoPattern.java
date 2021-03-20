@@ -1,4 +1,4 @@
-package com.grupo03.dao;
+package com.grupo03.model.dao;
 
 import java.util.List;
 import java.util.Optional;

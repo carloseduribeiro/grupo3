@@ -10,4 +10,4 @@
  * @author Tarcísio Nunes (tarcnux)
  * @version 1.0
  */
-package com.grupo03.dao;
+package com.grupo03.model.dao;
