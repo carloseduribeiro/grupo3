@@ -4,6 +4,9 @@ package com.grupo03.controller;
 import com.grupo03.model.Person;
 import com.grupo03.model.dao.PersonDao;
 
+import java.util.List;
+
+
 /**
  * Realiza as operações da entidade Person aplicando as regras de negócio.
  */
@@ -45,12 +48,18 @@ public class PersonController {
     }
 
     /**
+     * Consulta a lista de pessoas cadastradas no banco e retorna em uma lista.
+     * @return  uma lista de objetos do tipo Person.
+     */
+    public List<Person> getPersons() {
+        return personDao.getAll();
+    }
+
+    /**
      * Consulta o total de pessoas cadastradas.
      * @return o total de pessoas cadastradas no banco de dados.
      */
     public static int getTotalPersons() {
          return personDao.getAll().size();
     }
-
-
 }
