@@ -2,6 +2,8 @@ package com.grupo03.model;
 
 import com.grupo03.model.joins.CoffeeRoomPerson;
 import com.grupo03.model.joins.EventRoomPerson;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -60,6 +62,7 @@ public class Person {
      * relacionamento muitos-para-muitos entre as classes EventRoom e Person.
      */
     @OneToMany(mappedBy = "person")
+    @LazyCollection(LazyCollectionOption.FALSE)
     private List<EventRoomPerson> eventRoomPersonList = new ArrayList<>();
 
     /**
@@ -68,6 +71,7 @@ public class Person {
      * Person.
      */
     @OneToMany(mappedBy = "person")
+    @LazyCollection(LazyCollectionOption.FALSE)
     private List<CoffeeRoomPerson> coffeeRoomPersonList = new ArrayList<>();
 
     /**
