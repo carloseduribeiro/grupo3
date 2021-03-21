@@ -13,18 +13,20 @@ import com.grupo03.model.dao.EventRoomDao;
 import com.grupo03.model.dao.PersonDao;
 import com.grupo03.persistence.EntityManagerProvider;
 
-import java.util.*;
+import java.util.InputMismatchException;
+import java.util.List;
+import java.util.Scanner;
 
 
 /**
  * Contém os métodos da interfáce do usuário.
  * @see com.grupo03.controller.EventRoomController
  *
- * {@link #start()} Método que exibe o menu de funcionalidades do sistema.
- * {@link #createPerson()} Cria uma nova pessoa e a cadastra no banco de dados.
+ * {@link #start()} Imprime o menu principal na tela.
+ * {@link #createPerson()} Imprime o menu e obtém as informações necessárias para cadastrar uma pessoa no evento.
  * {@link #createEventRoom()} Imprime o menu e obtém as informações necessárias para cadastrar um espaço de evento.
- * {@link #createCoffeeRoom()} Cria uma nova sala de café e salva no banco de dados.
- * {@link #getPersonList()} Exibe as salas de evento e café em que a pessoa selecionada foi cadastrada.
+ * {@link #createCoffeeRoom()} Imprime o menu e obtém as informações necessárias para cadastrar um espaço de café.
+ * {@link #getPersonList()} Imprime a lista de pessoas cadastradas e as informações da pessoa selecionada.
  * {@link #getEventRoomList()} Exibe todas as pessoas que estão cadastradas na sala de evento selecionada,
  * durante as etapas 1 e 2.
  * {@link #getCoffeeRoomList()} Exibe todas as pessoas que estão cadastradas na sala de café selecionada,
@@ -279,61 +281,95 @@ public class ApplicationGUI {
 
 
     /**
-     * Método que retorna as salas de evento e café em que uma pessoa esta alocada
-     * @throws InputMismatchException
-     * @throws IndexOutOfBoundsException
+     * Imprime todas as pessoas cadastradas na tela e exibe os espaços de evento
+     * e de café que ela está cadastrada.
      */
     public static void getPersonList(){
 
-        Scanner teclado = new Scanner(System.in);
-        var em = EntityManagerProvider.getEntityManager();
-        int opcao = 0;
+        var personController = new PersonController();
 
-        var pController = new PersonDao();
+        List<Person> personList = personController.getPersons();
 
-        List<Person> persons;
-        persons = pController.getAll();
+        var opcaoMenu = "";
+        var cancelar = false;
 
-        Person person;
+        var input = "";
+        var personIndex = 0;        // armazena o índice da pessoa na lista.
 
-        do{
-            limpar();
-            System.out.println("Selecione a pessoa na lista abaixo:\n\n");
-            int aux=1;
-            for (Person p:persons) {
-                System.out.println(aux+") "+ p.getName()+" "+p.getLastname());
-                aux++;
+        System.out.println("\n========= CONSULTAR PESSOA =========");
+        if (personList.size() == 0) {
+            System.out.println("Nenhuma pessoa foi cadastrada!");
+            return;
+        }
+
+        do {
+            // Imprime a lista de pessoas:
+            for (int i = 0; i < personList.size(); i++) {
+                var person = personList.get(i);
+                System.out.printf("%d)\t%s %s\n", i+1, person.getName(), person.getLastname());
             }
-            System.out.println("Digite: ");
-            try {
-                opcao = teclado.nextInt();
-                int id;
-                id = persons.get(opcao-1).getId();
-                person = em.find(Person.class,id);
-                System.out.println("Etapa 1"
-                        +"\nSala de Evento: "+ person.getEventRoomPersonList().get(0).getEventRoom().getName()
-                        +"\nSala de Café: "+ person.getCoffeeRoomPersonList().get(0).getCoffeeRoom().getName()
-                        +"\nAssento: "+ person.getSeat()
-                        +"\n\nEtapa 2"
-                        +"\nSala de Evento: "+ person.getEventRoomPersonList().get(1).getEventRoom().getName()
-                        +"\nSala de Café: "  + person.getCoffeeRoomPersonList().get(1).getCoffeeRoom().getName()
-                        +"\nAssento: "+ person.getSeat()
-                );
 
-                System.out.println("\n\n\nDeseja buscar outra Pessoa?\n1)Sim\n2)Não\nDigite:");
-                opcao = teclado.nextInt();
-            }catch (InputMismatchException inputError){
-                System.out.println("A opção selecionada não é válida! Retornando ao Menu Principal");
-                opcao = 2;
-            }catch (IndexOutOfBoundsException indexBound){
-                if (opcao > persons.size() || opcao < 1){
-                    System.out.println("O valor digitado não corresponde a uma pessoa da lista");
-                }else {
-                    System.out.println("A função de alocar pessoas nas salas não foi executada! Selecione a opção 7 no menu Principal");
-                    opcao = 2;
+            do {
+                System.out.print("\nInsira o número da pessoa na lista (aperte ENTER para cancelar).    \n");
+                System.out.print("Digite: ");
+                input = ler.nextLine();
+
+                if (input.isEmpty()) {
+                    cancelar = true;
+                    break;
                 }
+
+                try {
+                    personIndex = Integer.parseInt(input);
+
+                    if (personIndex > personList.size()) {
+                        System.out.println("Erro: Insira um número que consta na lista!");
+                        personIndex = 0;
+                    }
+                } catch (NumberFormatException nfe) {
+                    System.out.println("Erro: Insira um número válido!");
+                    personIndex = 0;
+                }
+
+            } while (personIndex == 0);
+
+            if (cancelar) {
+                System.out.println("Operação cancelada!\n");
+                break;
             }
-        }while(opcao!=2);
+
+            // Armazena as informações da pessoa:
+            var person = personList.get(--personIndex);
+            var eventRoomPersonList = person.getEventRoomPersonList();
+            var coffeeRoomPersonList = person.getCoffeeRoomPersonList();
+
+            // Exibe as informações da pessoa:
+
+            System.out.print("\n==== INFORMAÇÕES DA PESSOA: ====\n");
+            System.out.printf("Nome: %s %s\n", person.getName(), person.getLastname());
+            System.out.println("\n------ ESPAÇOS DE EVENTO: ------");
+
+            if (eventRoomPersonList.size() == 0) {
+                System.out.println("Nenhum espaço de evento ou café foi associado a essa pessoa!\n");
+            } else {
+                eventRoomPersonList.forEach(er -> {
+                    var eventRoom = er.getEventRoom();
+                    System.out.printf("Sala: %-20s | Etapa: %-3d | Cadeira: %d\n",
+                            eventRoom.getName(), er.getStage(), person.getSeat());
+                });
+                System.out.println("\n------- ESPAÇOS DE CAFÉ: -------");
+
+                coffeeRoomPersonList.forEach(cr -> {
+                    var coffeeRoom = cr.getCoffeeRoom();
+                    System.out.printf("Café: %-20s | Etapa: %-3d\n", coffeeRoom.getName(), cr.getStage());
+                });
+                System.out.println("--------------------------------");
+            }
+
+            System.out.print("Deseja cadastrar outra pessoa? (S ou N): ");
+            opcaoMenu = ler.next();
+            ler.nextLine();
+        } while (opcaoMenu.equalsIgnoreCase("S"));
    }
 
     /**
@@ -522,7 +558,7 @@ public class ApplicationGUI {
         Scanner teclado = new Scanner(System.in);
         System.out.println("Seja Bem vindo!");
         do {
-            System.out.println("Escolha uma opção: ");
+            System.out.println("\nEscolha uma opção: ");
             System.out.print("" +
                     "\t1)Cadastrar Salas\n" +
                     "\t2)Cadastrar Salas de Café\n" +
