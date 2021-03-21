@@ -3,6 +3,7 @@ package com.grupo03.view;
 
 import com.grupo03.controller.CoffeeRoomController;
 import com.grupo03.controller.EventRoomController;
+import com.grupo03.controller.PersonController;
 import com.grupo03.model.CoffeeRoom;
 import com.grupo03.model.EventRoom;
 import com.grupo03.model.Person;
@@ -157,12 +158,12 @@ public class ApplicationGUI {
                 if (input.isEmpty()) {
                     cancelar = true;
                     break;
-                } else if (input.length() < 3) {
+                } else if (input.length() < 3 || input.length() > 255) {
                     System.out.println("\nErro: Insira um nome válido!");
                 }
 
                 name = input;
-            } while (name.length() < 3);
+            } while (name.length() < 3 || input.length() > 255);
 
             // Verifica se o usuário quer cancelar o cadastro:
             if (cancelar) {
@@ -181,78 +182,100 @@ public class ApplicationGUI {
             System.out.print("Deseja cadastrar outro expaço? (S ou N): ");
             opcaoMenu = ler.next();
             ler.nextLine();
-        }while(opcaoMenu.equalsIgnoreCase("S"));
+        } while (opcaoMenu.equalsIgnoreCase("S"));
     }
 
     /**
-     * Método que cria as pessoas e salva no banco
+     * Imprime o menu e obtém as informações necessárias para cadastrar uma pessoa.
      */
     public static void createPerson(){
-        Person person;
-        Scanner teclado = new Scanner(System.in);
+
+        var personController = new PersonController();
+
+        // Armazena os dados que o usuário digitar:
+        var input = "";
+        var name = "";
+        var lastName = "";
+
+        var opcaoMenu = "";     // Armazena a opção que o usuário digitar.
+        var cancelar = false;   // falso se o usuário quiser cancelar.
+
+        // Armazena o total de pessoas e a capacidade do evento:
+        int totalPersons = PersonController.getTotalPersons();
+        int capacity = EventRoomController.getEventCapacity();
+        capacity -= totalPersons;
 
 
-        String name,lastName,opcao;
-        int capAtual;
+        System.out.println("\n======== CADASTRO DE PESSOA ========");
+        do {
 
-        List<EventRoom> rooms;
-        List<CoffeeRoom> coffes;
-        List<Person> pessoas;
+            if (capacity == 0) {
+                System.out.println("A capacidade máxima do evento foi atingida!");
+                System.out.println("Não é possível cadastras mais pessoas.\n");
+                break;
+            } else {
+                System.out.printf("Total de vagas restantes: %d\n", capacity);
+            }
 
+            System.out.println("Aperte ENTER para cancelar.");
 
-        var personController = new PersonDao();
-        var roomController = new EventRoomDao();
-        var coffeeController = new CoffeeRoomDao();
-
-        pessoas = personController.getAll();
-        capAtual = pessoas.size();
-
-        rooms = roomController.getAll();
-        coffes = coffeeController.getAll();
-
-        if(rooms.size() >= 2 && coffes.size() >= 2){
-
-            // Busca a menor capacidade de sala:
-            Optional<Integer> capMax =
-                    rooms.stream().map(EventRoom::getCapacity).min(Comparator.naturalOrder());
-
-            int capacidadeMaxima = capMax.get();
-
-            capacidadeMaxima = capacidadeMaxima * rooms.size();
-
+            // Pede ao usuário para inserir o nome:
             do {
-                if(capAtual<capacidadeMaxima){
+                System.out.print("Nome: ");
+                input = ler.nextLine();
 
-                    System.out.println("Capacidade disponível: " + (capacidadeMaxima - capAtual));
-                    System.out.println("Insira o nome:");
-                    name = teclado.nextLine();
-
-                    System.out.println("Insira o sobrenome:");
-                    lastName = teclado.nextLine();
-
-                    System.out.println("Nome: " + name + " " + lastName);
-                    person = new Person (name, lastName);
-                    person.setName(name);
-                    person.setLastname(lastName);
-                    personController.save(person);
-
-                    capAtual++;
-                    System.out.println("Deseja inserir outra Pessoa?? S ou N");
-                    opcao = teclado.next();
-                    teclado.nextLine();
-
-                    limpar();
+                // Verifica se o valor digitado está vazio para cancelar:
+                if (input.isEmpty()) {
+                    cancelar = true;
+                    break;
+                } else if (input.length() < 3 || input.length() > 255) {
+                    System.out.println("\nErro: Insira um nome válido!");
                 }
 
-                else {
-                    System.out.println("Capacidade Máxima atingida. Retornando ao menu inicial.");
-                    opcao="N";
+                name = input;
+            } while (name.length() < 3 || input.length() > 255);
+
+            // Verifica se o usuário quer cancelar o cadastro:
+            if (cancelar) {
+                System.out.println("Operação cancelada!\n");
+                break;
+            }
+
+            // Pede ao usuário para inserir o sobrenome:
+            do {
+                System.out.print("Sobrenome: ");
+                input = ler.nextLine();
+
+                if (input.isEmpty()) {
+                    cancelar = true;
+                    break;
+                } else if (input.length() < 3 || input.length() > 255) {
+                    System.out.println("\nErro: Insira um sobrenome válido!");
                 }
-            }while(opcao.equalsIgnoreCase("S"));
-        }else{
-            System.out.println("Cadastre pelo menos 2 salas de Evento e 2 salas de Café antes de cadastrar pessoas");
-        }
-        }
+
+                lastName = input;
+            } while (lastName.length() < 3 || input.length() > 255);
+
+            if (cancelar) {
+                System.out.println("Operação cancelada!\n");
+                break;
+            }
+
+            // Faz o cadastro no banco:
+            boolean personCadastrada = personController.create(name, lastName);
+            if (personCadastrada) {
+                totalPersons++;
+                capacity--;
+                System.out.printf("Pessoa cadastrada com sucesso.\nRestam %d vagas!\n\n", capacity);
+            }
+
+            if (capacity > 0) {
+                System.out.print("Deseja cadastrar outra pessoa? (S ou N): ");
+                opcaoMenu = ler.next();
+                ler.nextLine();
+            }
+        } while (opcaoMenu.equalsIgnoreCase("S"));
+    }
 
 
     /**
